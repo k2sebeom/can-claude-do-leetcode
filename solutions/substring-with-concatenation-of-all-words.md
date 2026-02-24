@@ -9,15 +9,12 @@ def findSubstring(s, words):
 
     word_len = len(words[0])
     word_count = len(words)
-    total_len = word_len * word_count
     result = []
 
-    # Count frequency of words
     word_freq = {}
     for word in words:
         word_freq[word] = word_freq.get(word, 0) + 1
 
-    # Try starting from each offset (0 to word_len-1)
     for offset in range(word_len):
         left = offset
         right = offset
@@ -25,7 +22,6 @@ def findSubstring(s, words):
         count = 0
 
         while right + word_len <= len(s):
-            # Add word from right
             word = s[right:right + word_len]
             right += word_len
 
@@ -33,23 +29,19 @@ def findSubstring(s, words):
                 current_freq[word] = current_freq.get(word, 0) + 1
                 count += 1
 
-                # If we have too many of this word, shrink from left
                 while current_freq[word] > word_freq[word]:
                     left_word = s[left:left + word_len]
                     current_freq[left_word] -= 1
                     count -= 1
                     left += word_len
 
-                # Check if we have a valid window
                 if count == word_count:
                     result.append(left)
-                    # Shrink from left to find next valid window
                     left_word = s[left:left + word_len]
                     current_freq[left_word] -= 1
                     count -= 1
                     left += word_len
             else:
-                # Reset if word not in words array
                 current_freq.clear()
                 count = 0
                 left = right
@@ -59,64 +51,209 @@ def findSubstring(s, words):
 
 ## Chain of Thought
 
-When first reading this problem, it seems daunting: we need to find all positions where a concatenation of ALL words (in any order) appears as a substring. The immediate brute force idea is to check every possible starting position in the string, extract a substring of the required total length, and verify if it contains exactly the words we need.
+**Step 1: Understanding the problem and brute force**
 
-However, this naive approach would be very slow. For each starting position, we'd need to parse the substring into words and compare frequencies, leading to potentially O(n * m * k) complexity where n is string length, m is word length, and k is number of words.
+We need to find all starting indices where a concatenation of ALL words (in any order) appears. The obvious approach: check every position.
 
-The breakthrough comes from recognizing this as a sliding window problem with a twist. Unlike typical sliding window problems that move one character at a time, we should move word-by-word since we're looking for concatenations of whole words. But there's a catch: the valid substring might start at any position within the first word_length characters. So we need to try all possible starting offsets (0 to word_len-1).
+```python
+def findSubstring(s, words):
+    if not s or not words:
+        return []
 
-For each offset, we can use the standard sliding window technique:
-- Maintain a frequency map of words in the current window
-- Expand the window by adding words from the right
-- When a word appears too many times or isn't in our target words, shrink from the left
-- When the window contains exactly the right words with right frequencies, record the starting index
+    word_len = len(words[0])
+    total_len = word_len * len(words)
+    result = []
 
-This approach ensures each character is processed at most a constant number of times (specifically, at most word_len times across all offsets), giving us O(n * m) time complexity, which is much better than the brute force approach.
+    for i in range(len(s) - total_len + 1):
+        substring = s[i:i + total_len]
+        # Check if substring contains all words
+        if is_valid(substring, words, word_len):
+            result.append(i)
 
-## Description
+    return result
+```
 
-**Line 1-2:** Handle edge cases - return empty list if string s or words array is empty.
+*Consideration:* For each position, I'd need to parse the substring and check word frequencies. This is O(n × m × k) where n = string length, m = word length, k = word count. Too slow!
 
-**Line 4-7:** Calculate key values: `word_len` is the length of each word (all words have same length), `word_count` is the number of words we need to match, `total_len` is the total length of concatenated substring, and `result` stores the answer.
+**Step 2: Recognizing the sliding window pattern**
 
-**Line 9-12:** Build a frequency map `word_freq` that counts how many times each word appears in the `words` array. This is used to validate if a substring contains the correct word frequencies.
+Wait, this is a sliding window problem! But unlike typical character-by-character sliding windows, I should move word-by-word since we're matching whole words.
 
-**Line 14:** The outer loop iterates through different starting offsets from 0 to word_len-1. This ensures we check all possible positions since we're moving word by word (not character by character).
+*Consideration:* If I move word-by-word, I might miss valid positions. For example, if word_len = 3, a valid concatenation could start at index 0, 1, or 2. Solution: try all offsets from 0 to word_len-1.
 
-**Line 15-18:** Initialize sliding window pointers (`left`, `right`), a frequency map for the current window (`current_freq`), and a counter (`count`) for the number of valid words in the current window.
+**Step 3: Setting up word frequency map**
 
-**Line 20:** The inner loop slides the window through the string, moving word_len characters at a time.
+First, count how many times each word appears in the words array.
 
-**Line 21-23:** Extract the next word from position `right` and move the right pointer forward by `word_len`.
+```python
+def findSubstring(s, words):
+    if not s or not words:
+        return []
 
-**Line 25:** Check if the extracted word exists in our target words.
+    word_len = len(words[0])
+    word_count = len(words)
+    result = []
 
-**Line 26-27:** Add the word to current window's frequency map and increment the count.
+    word_freq = {}
+    for word in words:
+        word_freq[word] = word_freq.get(word, 0) + 1
 
-**Line 29-34:** If we have too many occurrences of the current word (exceeds the required frequency), shrink the window from the left until the frequency is valid again. This maintains the sliding window invariant.
+    # TODO: sliding window for each offset
+    return result
+```
 
-**Line 36-42:** If the count equals the total number of words needed, we found a valid concatenated substring. Record the starting index (`left`). Then shrink the window from left by one word to continue searching for the next valid window.
+*Consideration:* This lets me quickly check if a word should be in our concatenation and how many times.
 
-**Line 43-47:** If the word is not in our target words array, reset the window completely since no valid concatenation can include this word.
+**Step 4: Implementing the sliding window for one offset**
 
-**Line 49:** Return all found starting indices.
+Let me implement the sliding window logic for offset 0 first.
 
-## Algorithms
+```python
+def findSubstring(s, words):
+    # ... previous setup code ...
 
-- **Sliding Window**: The core technique used to efficiently scan through the string without checking every possible substring independently.
-- **Hash Map / Frequency Counter**: Used to track word frequencies both for the target words and the current window, enabling O(1) word lookups and frequency comparisons.
-- **Two Pointers**: The `left` and `right` pointers define the current window, with `right` expanding the window and `left` contracting it when necessary.
+    left = 0
+    right = 0
+    current_freq = {}  # frequency of words in current window
+    count = 0  # number of valid words in window
+
+    while right + word_len <= len(s):
+        word = s[right:right + word_len]
+        right += word_len
+
+        if word in word_freq:
+            current_freq[word] = current_freq.get(word, 0) + 1
+            count += 1
+
+            if count == word_count:  # Found valid concatenation
+                result.append(left)
+
+    return result
+```
+
+*Consideration:* This adds words but never removes them. I need to shrink the window when it's invalid.
+
+**Step 5: Handling excess word occurrences**
+
+When a word appears too many times, shrink from the left.
+
+```python
+while right + word_len <= len(s):
+    word = s[right:right + word_len]
+    right += word_len
+
+    if word in word_freq:
+        current_freq[word] = current_freq.get(word, 0) + 1
+        count += 1
+
+        # Shrink if too many occurrences
+        while current_freq[word] > word_freq[word]:
+            left_word = s[left:left + word_len]
+            current_freq[left_word] -= 1
+            count -= 1
+            left += word_len
+
+        if count == word_count:
+            result.append(left)
+            # Shrink to find next valid window
+            left_word = s[left:left + word_len]
+            current_freq[left_word] -= 1
+            count -= 1
+            left += word_len
+```
+
+*Consideration:* After finding a valid window, I shrink by one word to continue searching.
+
+**Step 6: Handling invalid words**
+
+If we encounter a word not in our target words, reset completely.
+
+```python
+if word in word_freq:
+    # ... previous logic ...
+else:
+    # Word not in target words, reset window
+    current_freq.clear()
+    count = 0
+    left = right
+```
+
+*Consideration:* No valid concatenation can include this word, so we start fresh from the current position.
+
+**Step 7: Trying all offsets**
+
+Wrap the sliding window logic in a loop for all offsets.
+
+```python
+def findSubstring(s, words):
+    if not s or not words:
+        return []
+
+    word_len = len(words[0])
+    word_count = len(words)
+    result = []
+
+    word_freq = {}
+    for word in words:
+        word_freq[word] = word_freq.get(word, 0) + 1
+
+    for offset in range(word_len):
+        left = offset
+        right = offset
+        current_freq = {}
+        count = 0
+
+        while right + word_len <= len(s):
+            word = s[right:right + word_len]
+            right += word_len
+
+            if word in word_freq:
+                current_freq[word] = current_freq.get(word, 0) + 1
+                count += 1
+
+                while current_freq[word] > word_freq[word]:
+                    left_word = s[left:left + word_len]
+                    current_freq[left_word] -= 1
+                    count -= 1
+                    left += word_len
+
+                if count == word_count:
+                    result.append(left)
+                    left_word = s[left:left + word_len]
+                    current_freq[left_word] -= 1
+                    count -= 1
+                    left += word_len
+            else:
+                current_freq.clear()
+                count = 0
+                left = right
+
+    return result
+```
+
+*Consideration:* Each character is processed at most word_len times (once per offset), giving O(n × m) complexity!
 
 ## Complexity
 
-**Time Complexity:** O(n * m) where n is the length of string s and m is the length of each word.
-- The outer loop runs m times (for each offset from 0 to word_len-1)
-- For each offset, the inner loop processes each character in s at most once
-- Each word extraction and map operation is O(m), but since we do this n/m times per offset, it's O(n) per offset
-- Total: O(m * n)
+**Time Complexity: O(n × m)**
+- n = length of string s
+- m = length of each word
+- k = number of words
+- Outer loop runs m times (for each offset 0 to word_len-1)
+- For each offset, we process each character at most once
+- Each word extraction is O(m), but we do n/m extractions per offset
+- Total: m × (n/m × m) = O(n × m)
 
-**Space Complexity:** O(k * m) where k is the number of unique words in the words array.
-- `word_freq` map stores at most k words, each of length m
-- `current_freq` map also stores at most k words
-- Other variables use constant space
-- The result array in worst case could store O(n) indices, but this is output space and typically not counted
+**Space Complexity: O(k × m)**
+- word_freq stores k unique words, each of length m
+- current_freq also stores at most k words
+- Result array can store O(n) indices in worst case (output space)
+
+This is much better than the brute force O(n × m × k) approach.
+
+## Algorithms
+
+- **Sliding Window**: Core technique for efficiently scanning the string by maintaining a valid window and expanding/contracting it
+- **Hash Map / Frequency Counter**: Tracks word frequencies for both target words and current window, enabling O(1) lookups
+- **Two Pointers**: left and right pointers define the current window boundaries
+- **Multi-offset Strategy**: Running the sliding window from multiple starting positions to cover all possible concatenation locations
