@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algorithm Solutions — A Technical Journal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="grain-overlay"></div>
+
+    <header class="site-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <span class="volume-number">Vol. I</span>
+                <h1 class="site-title">Algorithm<br>Solutions</h1>
+                <p class="site-subtitle">A curated collection of problem-solving approaches</p>
+            </div>
+            <div class="header-meta">
+                <div class="stat-item">
+                    <span class="stat-label">Problems Solved</span>
+                    <span class="stat-value" id="problem-count">—</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <section class="problems-section">
+            <div class="section-header">
+                <h2 class="section-title">Table of Contents</h2>
+                <div class="section-line"></div>
+            </div>
+
+            <div class="problems-grid" id="problems-list">
+                <!-- Problems will be loaded here dynamically -->
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>Compiled with precision · 2026</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
