@@ -1,136 +1,165 @@
-// Problem metadata configuration (duplicated from app.js for standalone page)
-const PROBLEMS = [
-    {
-        id: 'merge-k-sorted-lists',
-        title: 'Merge k Sorted Lists',
-        description: 'Merge all the linked-lists into one sorted linked-list and return it.',
-        file: 'merge-k-sorted-lists.md'
-    },
-    {
-        id: 'substring-with-concatenation-of-all-words',
-        title: 'Substring with Concatenation of All Words',
-        description: 'A concatenated string is a string that exactly contains all the strings of any permutation of wor...',
-        file: 'substring-with-concatenation-of-all-words.md'
-    },
-    {
-        id: 'two-sum',
-        title: 'Two Sum',
-        description: 'You may assume that each input would have exactly one solution, and you may not use the same elem...',
-        file: 'two-sum.md'
-    }
-];
+// Problem detail page script
 
-// Get URL parameters
-function getUrlParameter(name) {
+// Get problem ID from URL
+function getProblemId() {
     const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get(name);
+    return urlParams.get('id');
 }
 
-// Load and display problem details
-async function loadProblemDetails() {
-    const problemId = getUrlParameter('id');
+// Initialize the page
+async function init() {
+    const problemId = getProblemId();
 
     if (!problemId) {
         showError('No problem ID specified');
         return;
     }
 
-    // Find problem metadata
-    const problem = PROBLEMS.find(p => p.id === problemId);
-
-    if (!problem) {
-        showError('Problem not found');
-        return;
-    }
-
-    // Update page header
-    updateHeader(problem);
-
-    // Load problem description and solution
     await Promise.all([
-        loadProblemDescription(problem.file),
-        loadSolution(problem.file)
+        loadProblem(problemId),
+        loadSolution(problemId)
     ]);
 }
 
-// Update the problem header
-function updateHeader(problem) {
-    const problemNumber = document.getElementById('problem-number');
-    const problemTitle = document.getElementById('problem-title');
+// Load problem data
+async function loadProblem(problemId) {
+    try {
+        const response = await fetch(`data/${problemId}.json`);
 
-    const index = PROBLEMS.findIndex(p => p.id === problem.id) + 1;
+        if (!response.ok) {
+            throw new Error('Problem not found');
+        }
 
-    if (problemNumber) {
-        problemNumber.textContent = `№ ${index.toString().padStart(2, '0')}`;
-    }
+        const problem = await response.json();
+        renderProblem(problem);
+        renderMeta(problem);
 
-    if (problemTitle) {
-        problemTitle.textContent = problem.title;
+        // Update page title
+        document.title = `${problem.title} - Algorithm Study Guide`;
+    } catch (error) {
+        console.error('Error loading problem:', error);
+        showError('problemContent', 'Failed to load problem data');
     }
 }
 
-// Load problem description from markdown file
-async function loadProblemDescription(filename) {
-    const contentDiv = document.getElementById('problem-content');
-
-    if (!contentDiv) return;
-
+// Load solution markdown
+async function loadSolution(problemId) {
     try {
-        const response = await fetch(`problems/${filename}`);
+        const response = await fetch(`solutions/${problemId}.md`);
 
         if (!response.ok) {
-            throw new Error('Failed to load problem description');
+            throw new Error('Solution not found');
         }
 
         const markdown = await response.text();
-        const html = marked.parse(markdown);
-
-        contentDiv.innerHTML = html;
+        renderSolution(markdown);
     } catch (error) {
-        contentDiv.innerHTML = `<p class="loading-text" style="color: var(--color-accent);">Error loading problem: ${error.message}</p>`;
+        console.error('Error loading solution:', error);
+        showError('solutionContent', 'Failed to load solution data');
     }
 }
 
-// Load solution from markdown file
-async function loadSolution(filename) {
-    const contentDiv = document.getElementById('solution-content');
+// Render problem content
+function renderProblem(problem) {
+    const contentDiv = document.getElementById('problemContent');
+    contentDiv.innerHTML = problem.content;
+}
 
-    if (!contentDiv) return;
+// Render problem metadata
+function renderMeta(problem) {
+    const metaDiv = document.getElementById('problemMeta');
 
-    try {
-        const response = await fetch(`solutions/${filename}`);
+    metaDiv.innerHTML = `
+        <h1 class="meta-title">${problem.title}</h1>
 
-        if (!response.ok) {
-            throw new Error('Solution not available yet');
+        <div class="meta-item">
+            <div class="meta-label">Problem ID</div>
+            <div class="meta-value">#${problem.questionId}</div>
+        </div>
+
+        <div class="meta-item">
+            <div class="meta-label">Difficulty</div>
+            <div class="difficulty-badge ${problem.difficulty.toLowerCase()}">
+                ${problem.difficulty}
+            </div>
+        </div>
+
+        <div class="meta-item">
+            <div class="meta-label">Original Problem</div>
+            <a href="${problem.url}" target="_blank" rel="noopener noreferrer" class="meta-link">
+                View on LeetCode
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M12 4L12 8M12 4L8 4M12 4L6 10" stroke="currentColor" stroke-width="2" stroke-linecap="square"/>
+                    <path d="M10 12H4V6" stroke="currentColor" stroke-width="2" stroke-linecap="square"/>
+                </svg>
+            </a>
+        </div>
+    `;
+}
+
+// Render solution from markdown
+function renderSolution(markdown) {
+    const solutionDiv = document.getElementById('solutionContent');
+
+    // Configure marked options
+    marked.setOptions({
+        highlight: function(code, lang) {
+            return code;
+        },
+        breaks: true,
+        gfm: true
+    });
+
+    // Convert markdown to HTML
+    const html = marked.parse(markdown);
+    solutionDiv.innerHTML = html;
+
+    // Enhance code blocks
+    enhanceCodeBlocks(solutionDiv);
+}
+
+// Enhance code blocks with language labels
+function enhanceCodeBlocks(container) {
+    const codeBlocks = container.querySelectorAll('pre code');
+
+    codeBlocks.forEach(block => {
+        const pre = block.parentElement;
+
+        // Add language label if available
+        const className = block.className;
+        const match = className.match(/language-(\w+)/);
+
+        if (match) {
+            const language = match[1];
+            const label = document.createElement('div');
+            label.style.cssText = `
+                font-family: var(--font-mono);
+                font-size: 0.75rem;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                color: var(--color-text-light);
+                margin-bottom: 0.5rem;
+                font-weight: 500;
+            `;
+            label.textContent = language;
+            pre.insertBefore(label, block);
         }
-
-        const markdown = await response.text();
-        const html = marked.parse(markdown);
-
-        contentDiv.innerHTML = html;
-    } catch (error) {
-        contentDiv.innerHTML = `<p class="loading-text" style="color: var(--color-accent);">Error loading solution: ${error.message}</p>`;
-    }
+    });
 }
 
 // Show error message
-function showError(message) {
-    const problemTitle = document.getElementById('problem-title');
-    const problemContent = document.getElementById('problem-content');
-    const solutionContent = document.getElementById('solution-content');
-
-    if (problemTitle) {
-        problemTitle.textContent = 'Error';
-    }
-
-    if (problemContent) {
-        problemContent.innerHTML = `<p class="loading-text" style="color: var(--color-accent);">${message}</p>`;
-    }
-
-    if (solutionContent) {
-        solutionContent.innerHTML = '';
-    }
+function showError(elementId, message) {
+    const element = document.getElementById(elementId);
+    element.innerHTML = `
+        <div class="loading">
+            <p style="color: var(--color-hard);">${message}</p>
+        </div>
+    `;
 }
 
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', loadProblemDetails);
+// Start the app when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
