@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Scan the dist/data directory and generate a manifest file
+Scan the docs/data directory and generate a manifest file
 that lists all available problems for the frontend.
 """
 
@@ -10,8 +10,8 @@ from pathlib import Path
 
 
 def scan_problems():
-    """Scan dist/data directory and generate manifest."""
-    data_dir = Path("dist/data")
+    """Scan docs/data directory and generate manifest."""
+    data_dir = Path("docs/data")
 
     if not data_dir.exists():
         print(f"Error: {data_dir} directory not found")
@@ -47,7 +47,7 @@ def scan_problems():
     problems.sort(key=lambda x: int(x["questionId"]) if x["questionId"].isdigit() else 999999)
 
     # Write manifest file
-    manifest_path = Path("dist/problems-manifest.json")
+    manifest_path = Path("docs/problems-manifest.json")
     with open(manifest_path, 'w', encoding='utf-8') as f:
         json.dump({
             "problems": problems,

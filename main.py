@@ -17,10 +17,10 @@ def main():
 
     display_name = problem.title.lower().replace(' ', '-')
 
-    with open(f'dist/problems/{display_name}.md', 'w') as f:
+    with open(f'docs/problems/{display_name}.md', 'w') as f:
         f.write(problem.to_markdown())
 
-    with open(f'dist/data/{display_name}.json', 'w') as f:
+    with open(f'docs/data/{display_name}.json', 'w') as f:
         f.write(problem.model_dump_json(indent=2))
 
 

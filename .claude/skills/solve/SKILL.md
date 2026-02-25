@@ -5,7 +5,7 @@ description: "Read leetcode problem and solve it as a study guide
 
 # Instruction
 
-Read problem under ./dist/problems/ and write your solution under ./dist/solutions in a markdown format.
+Read problem under ./docs/problems/ and write your solution under ./docs/solutions in a markdown format.
 
 # Solution Format
 
