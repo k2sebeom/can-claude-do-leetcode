@@ -13,7 +13,6 @@ def main():
 
     resp = requests.get(API_URL + f"/problem/{args.problem_id}")
     problem = LeetCodeProblem(**resp.json())
-    print(problem.to_markdown())
 
     display_name = problem.title.lower().replace(' ', '-')
 
@@ -22,6 +21,8 @@ def main():
 
     with open(f'docs/data/{display_name}.json', 'w') as f:
         f.write(problem.model_dump_json(indent=2))
+
+    print(f"Successfully fetched {display_name}")
 
 
 if __name__ == "__main__":

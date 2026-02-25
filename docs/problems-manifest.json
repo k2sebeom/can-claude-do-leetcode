@@ -8,6 +8,13 @@
       "url": "https://leetcode.com/problems/two-sum/"
     },
     {
+      "slug": "add-two-numbers",
+      "questionId": "2",
+      "title": "Add Two Numbers",
+      "difficulty": "Medium",
+      "url": "https://leetcode.com/problems/add-two-numbers/"
+    },
+    {
       "slug": "remove-element",
       "questionId": "27",
       "title": "Remove Element",
@@ -22,6 +29,6 @@
       "url": "https://leetcode.com/problems/candy/"
     }
   ],
-  "count": 3,
+  "count": 4,
   "generated": true
 }
