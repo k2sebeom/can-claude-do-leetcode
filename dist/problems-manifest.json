@@ -6,8 +6,22 @@
       "title": "Two Sum",
       "difficulty": "Easy",
       "url": "https://leetcode.com/problems/two-sum/"
+    },
+    {
+      "slug": "remove-element",
+      "questionId": "27",
+      "title": "Remove Element",
+      "difficulty": "Easy",
+      "url": "https://leetcode.com/problems/remove-element/"
+    },
+    {
+      "slug": "candy",
+      "questionId": "135",
+      "title": "Candy",
+      "difficulty": "Hard",
+      "url": "https://leetcode.com/problems/candy/"
     }
   ],
-  "count": 1,
+  "count": 3,
   "generated": true
 }
